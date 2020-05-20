@@ -76,7 +76,7 @@
         <div class="col-md-4 mrb20">点击按钮开始上传文件</div>
         <div class="col-md-8">
           <div class="wrap btn btn-default">
-            <input type="file" id="file" />
+            <input type="file" id="file" multiple />
             <p>上传文件</p>
           </div>
         </div>
@@ -120,9 +120,13 @@
       let chunks = 0;
       $("#file").on("change", function () {
         // 单个文件
-        file = this.files[0];
-        fileSize = file.size;
-        responseChange(file);
+        // file = this.files[0];
+        // 批量上传
+        for (let i = 0; i < this.files.length; i++) {
+          file = this.files[i];
+          fileSize = file.size;
+          responseChange(file);
+        }
       });
 
       // 0.响应点击
@@ -144,7 +148,7 @@
         // 第三步：检查并上传MD5
         await checkAndUploadChunk(fileMd5Value, result.chunkList);
         // 第四步: 通知服务器所有分片已上传完成
-        notifyServer(fileMd5Value);
+        notifyServer(fileMd5Value, file);
       }
 
       // 1.修改时间+文件名称+最后修改时间-->MD5
@@ -256,7 +260,7 @@
       }
 
       // 第四步: 通知服务器所有分片已上传完成
-      function notifyServer(fileMd5Value) {
+      function notifyServer(fileMd5Value, file) {
         let url =
           baseUrl +
           "/merge?md5=" +

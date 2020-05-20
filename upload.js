@@ -6,7 +6,7 @@ let path = require("path");
 let concat = require("concat-files");
 let opn = require("opn");
 
-let uploadDir = "uploads";
+let uploadDir = "nodeServer/uploads";
 
 // 处理静态资源
 app.use(express.static(path.join(__dirname)));
@@ -135,7 +135,7 @@ app.all("/upload", (req, resp) => {
 async function getChunkList(filePath, folderPath, callback) {
   let isFileExit = await isExist(filePath);
   let result = {};
-  // 如果文件(文件名, 如:node-v7.7.4.pkg)已在存在, 不用再继续上传, 真接秒传
+  // 如果文件(文件名, 如:node-v7.7.4.pkg)已经存在, 不用再继续上传, 直接秒传
   if (isFileExit) {
     result = {
       stat: 1,
