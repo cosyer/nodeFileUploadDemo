@@ -7,6 +7,11 @@ let concat = require("concat-files");
 let opn = require("opn");
 
 let uploadDir = "nodeServer/uploads";
+let tmpDir = "nodeServer/tmp";
+
+// 创建上传文件夹目录
+folderIsExit(path.resolve(__dirname, uploadDir));
+folderIsExit(path.resolve(__dirname, tmpDir));
 
 // 处理静态资源
 app.use(express.static(path.join(__dirname)));
@@ -67,30 +72,23 @@ app.get("/check/chunk", (req, resp) => {
   });
 });
 
-app.all("/merge", (req, resp) => {
-  let query = req.query;
-  let md5 = query.md5;
-  let size = query.size;
-  let fileName = query.fileName;
-  console.log(md5, fileName);
-  mergeFiles(path.join(uploadDir, md5), uploadDir, fileName, size);
-  resp.send({
-    stat: 1,
-  });
-});
-
+// 上传chunk
 app.all("/upload", (req, resp) => {
+  // 解析表单数据
   var form = new formidable.IncomingForm({
-    uploadDir: "nodeServer/tmp",
+    uploadDir: tmpDir,
   });
   form.parse(req, function (err, fields, file) {
+    // 其中的参数
     let index = fields.index;
     let total = fields.total;
     let fileMd5Value = fields.fileMd5Value;
-    let folder = path.resolve(__dirname, "nodeServer/uploads", fileMd5Value);
+    let folder = path.resolve(__dirname, uploadDir, fileMd5Value);
+    // path.join path.resovle ??
     folderIsExit(folder).then((val) => {
       let destFile = path.resolve(folder, fields.index);
       console.log("----------->", file.data.path, destFile);
+      // tmp目录cp到目标目录
       copyFile(file.data.path, destFile).then(
         (successLog) => {
           resp.send({
@@ -107,28 +105,19 @@ app.all("/upload", (req, resp) => {
       );
     });
   });
-  // 文件夹是否存在, 不存在则创建文件
-  function folderIsExit(folder) {
-    console.log("folderIsExit", folder);
-    return new Promise(async (resolve, reject) => {
-      let result = await fs.ensureDirSync(path.join(folder));
-      console.log("result----", result);
-      resolve(true);
-    });
-  }
-  // 把文件从一个目录拷贝到别一个目录
-  function copyFile(src, dest) {
-    let promise = new Promise((resolve, reject) => {
-      fs.rename(src, dest, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve("copy file:" + dest + " success!");
-        }
-      });
-    });
-    return promise;
-  }
+});
+
+// 合并文件
+app.all("/merge", (req, resp) => {
+  let query = req.query;
+  let md5 = query.md5;
+  let size = query.size;
+  let fileName = query.fileName;
+  console.log(md5, fileName);
+  mergeFiles(path.join(uploadDir, md5), uploadDir, fileName, size);
+  resp.send({
+    stat: 1,
+  });
 });
 
 // 获取文件Chunk列表
@@ -162,6 +151,48 @@ async function getChunkList(filePath, folderPath, callback) {
   callback(result);
 }
 
+// 合并文件
+async function mergeFiles(srcDir, targetDir, newFileName, size) {
+  console.log(...arguments);
+  let targetStream = fs.createWriteStream(path.join(targetDir, newFileName));
+  let fileArr = await listDir(srcDir);
+  fileArr.sort((x, y) => {
+    return x - y;
+  });
+  // 列出所有chunk文件 把文件名加上文件夹的前缀
+  for (let i = 0; i < fileArr.length; i++) {
+    fileArr[i] = srcDir + "/" + fileArr[i];
+  }
+  console.log(fileArr);
+  concat(fileArr, path.join(targetDir, newFileName), () => {
+    console.log("Merge Success!");
+  });
+}
+
+// 文件夹是否存在, 不存在则创建文件
+function folderIsExit(folder) {
+  console.log("folderIsExit", folder);
+  return new Promise(async (resolve, reject) => {
+    let result = await fs.ensureDirSync(path.join(folder));
+    console.log("result----", result);
+    resolve(true);
+  });
+}
+
+// 把文件从一个目录拷贝到别一个目录
+function copyFile(src, dest) {
+  let promise = new Promise((resolve, reject) => {
+    fs.rename(src, dest, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve("copy file:" + dest + " success!");
+      }
+    });
+  });
+  return promise;
+}
+
 // 文件或文件夹是否存在
 function isExist(filePath) {
   return new Promise((resolve, reject) => {
@@ -190,23 +221,6 @@ function listDir(path) {
       }
       resolve(data);
     });
-  });
-}
-// 合并文件
-async function mergeFiles(srcDir, targetDir, newFileName, size) {
-  console.log(...arguments);
-  let targetStream = fs.createWriteStream(path.join(targetDir, newFileName));
-  let fileArr = await listDir(srcDir);
-  fileArr.sort((x, y) => {
-    return x - y;
-  });
-  // 把文件名加上文件夹的前缀
-  for (let i = 0; i < fileArr.length; i++) {
-    fileArr[i] = srcDir + "/" + fileArr[i];
-  }
-  console.log(fileArr);
-  concat(fileArr, path.join(targetDir, newFileName), () => {
-    console.log("Merge Success!");
   });
 }
 

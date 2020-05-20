@@ -217,15 +217,15 @@
 
       // 3.上传chunk
       async function checkAndUploadChunk(fileMd5Value, chunkList) {
-        chunks = Math.ceil(fileSize / chunkSize);
-        hasUploaded = chunkList.length;
+        chunks = Math.ceil(fileSize / chunkSize); // 所有的多少份
+        hasUploaded = chunkList.length; // 已经上传了多少份 [] 从索引0开始
         for (let i = 0; i < chunks; i++) {
           let exit = chunkList.indexOf(i + "") > -1;
           // 如果已经存在, 则不用再上传当前块
           if (!exit) {
-            let index = await upload(i, fileMd5Value, chunks);
+            let index = await upload(i, fileMd5Value, chunks); // 一个个执行上传的
             hasUploaded++;
-            let radio = Math.floor((hasUploaded / chunks) * 100);
+            let radio = Math.floor((hasUploaded / chunks) * 100); // 计算上传的比例
             $("#uploadProcessStyle").css({
               width: radio + "%",
             });
@@ -241,7 +241,7 @@
           let end =
             (i + 1) * chunkSize >= file.size ? file.size : (i + 1) * chunkSize;
           let form = new FormData();
-          form.append("data", file.slice(i * chunkSize, end)); //file对象的slice方法用于切出文件的一部分
+          form.append("data", file.slice(i * chunkSize, end)); //file对象的slice方法
           form.append("total", chunks); //总片数
           form.append("index", i); //当前是第几片
           form.append("fileMd5Value", fileMd5Value);
