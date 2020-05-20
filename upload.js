@@ -5,13 +5,23 @@ let fs = require("fs-extra");
 let path = require("path");
 let concat = require("concat-files");
 let opn = require("opn");
+let multer = require("multer");
 
 let uploadDir = "nodeServer/uploads";
 let tmpDir = "nodeServer/tmp";
 
+// let bodyParser=require('body-parser');
+// app.use(bodyParser.urlencoded());
+
 // 创建上传文件夹目录
 folderIsExit(path.resolve(__dirname, uploadDir));
 folderIsExit(path.resolve(__dirname, tmpDir));
+
+//设置上传的的图片保存目录
+// let objMulter = multer({ dest: uploadDir });
+
+// 表示接收任何上传的数据 objMulter.single('user')(表示只接收name为user的上传数据).array('file', 10)10表示最大支持的文件上传数目
+// app.use(objMulter.any());
 
 // 处理静态资源
 app.use(express.static(path.join(__dirname)));
@@ -32,6 +42,41 @@ app.all("*", (req, res, next) => {
 app.get("/success", function (req, resp) {
   let query = req.query;
   resp.send("success!!");
+});
+
+// multer上传
+app.post("/multerUpload", multer({ dest: uploadDir }).any(), function (
+  req,
+  resp
+) {
+  let files = req.files;
+  if (files.length === 0) {
+    res.render("error", { message: "上传文件不能为空！" });
+    return;
+  } else {
+    let fileInfos = [];
+    for (var i in files) {
+      let file = files[i];
+      let fileInfo = {};
+      //这里修改文件名
+      fs.renameSync(
+        path.resolve(__dirname, uploadDir, file.filename),
+        path.resolve(__dirname, uploadDir, file.originalname)
+      );
+      // 获取文件基本信息
+      fileInfo.mimetype = file.mimetype;
+      fileInfo.originalname = file.originalname;
+      fileInfo.size = file.size;
+      fileInfo.path = file.path;
+
+      fileInfos.push(fileInfo);
+    }
+    // 设置响应类型及编码
+    resp.set({
+      "content-type": "application/json; charset=utf-8",
+    });
+    resp.end("success!");
+  }
 });
 
 // 检查文件的MD5

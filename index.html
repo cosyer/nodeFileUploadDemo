@@ -107,6 +107,24 @@
           </div>
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-4 mrb20">multer上传文件</div>
+        <form
+          id="upload"
+          class="col-md-8 mrb20"
+          action="/multerUpload"
+          method="post"
+          enctype="multipart/form-data"
+          target="stop"
+          οnsubmit="submitForm();"
+        >
+          <input id="files" type="file" name="file" multiple />
+          <!-- 这里的multiple属性是允许多文件上传的，单文件上传可以不写此属性（最好都写上）-->
+          <input type="submit" value="上传" />
+          <!-- 阻止提交跳转页面 -->
+          <iframe name="stop" style="display: none;"></iframe>
+        </form>
+      </div>
     </div>
     <script src="./lib/jquery-1.10.2.min.js"></script>
     <script src="./bootstrap/bootstrap.min.js"></script>
@@ -272,6 +290,32 @@
         $.getJSON(url, function (data) {
           alert("上传成功");
         });
+      }
+
+      function submitForm() {
+        // var form = document.getElementById("upload"),
+        //   formData = new FormData(form);
+        // $.ajax({
+        //   url: baseUrl + "/multerUpload",
+        //   type: "post",
+        //   data: formData,
+        //   processData: false,
+        //   contentType: false,
+        //   success: function (res) {
+        //     if (res) {
+        //       alert(res);
+        //     }
+        //     console.log(res);
+        //   },
+        //   error: function (err) {
+        //     alert("网络连接失败,稍后重试", err);
+        //   },
+        // });
+        // $("#upload").ajaxSubmit(function (message) {
+        //   // 对于表单提交成功后处理，message为表单正常提交后返回的内容
+        //   console.log(message);
+        // });
+        return false;
       }
     </script>
   </body>
