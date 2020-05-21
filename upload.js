@@ -75,7 +75,11 @@ app.post("/multerUpload", multer({ dest: uploadDir }).any(), function (
     resp.set({
       "content-type": "application/json; charset=utf-8",
     });
-    resp.end("success!");
+    // resp.end("success!");
+    resp.send({
+      code: 1,
+      message: "success",
+    });
   }
 });
 

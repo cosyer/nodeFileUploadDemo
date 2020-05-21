@@ -116,7 +116,7 @@
           method="post"
           enctype="multipart/form-data"
           target="stop"
-          οnsubmit="submitForm();"
+          onsubmit="return submitForm()"
         >
           <input id="files" type="file" name="file" multiple />
           <!-- 这里的multiple属性是允许多文件上传的，单文件上传可以不写此属性（最好都写上）-->
@@ -293,28 +293,24 @@
       }
 
       function submitForm() {
-        // var form = document.getElementById("upload"),
-        //   formData = new FormData(form);
-        // $.ajax({
-        //   url: baseUrl + "/multerUpload",
-        //   type: "post",
-        //   data: formData,
-        //   processData: false,
-        //   contentType: false,
-        //   success: function (res) {
-        //     if (res) {
-        //       alert(res);
-        //     }
-        //     console.log(res);
-        //   },
-        //   error: function (err) {
-        //     alert("网络连接失败,稍后重试", err);
-        //   },
-        // });
-        // $("#upload").ajaxSubmit(function (message) {
-        //   // 对于表单提交成功后处理，message为表单正常提交后返回的内容
-        //   console.log(message);
-        // });
+        // ajax提交
+        var form = document.getElementById("upload"),
+          formData = new FormData(form);
+        $.ajax({
+          url: baseUrl + "/multerUpload",
+          type: "post",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (res) {
+            res = JSON.stringify(res);
+            console.log(res);
+            alert("上传成功");
+          },
+          error: function (err) {
+            alert("网络连接失败,稍后重试", err);
+          },
+        });
         return false;
       }
     </script>
